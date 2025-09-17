@@ -1,0 +1,71 @@
+.content {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    width: 1450px;
+    margin: 0 auto;
+}
+
+.upload-form {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    max-width: 100%;
+    margin: 20px 0 20px 300px;
+}
+.form-container {
+    width: 84.15%;
+}
+
+.image-info-field {
+    margin-bottom: 10px;
+}
+
+.image-info-field label {
+    display: block;
+    font-weight: bold;
+}
+
+.image-info-field input[type="text"],
+.image-info-field select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.image-info-field input[type="text"]:invalid {
+    border-color: #ff0000;
+}
+
+.image-info-field .info {
+    color: #666;
+    font-size: 14px;
+}
+
+
+.btn-custom {
+    width: 71px;
+    font-size: 16px;
+    margin-top: 31px;
+}
+.btn-custom-del {
+    width: 71px;
+    font-size: 16px;
+}
+/* Add or modify styles for the checkbox here */
+input[type=checkbox] {
+    /* Adjust width and height as needed */
+    width: 13px; /* Example width */
+    height: 13px; /* Example height */
+    /* Additional styles if necessary */
+}
+#editor-container {
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+.ql-editor {
+    height: 300px !important;
+}

@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{%load static%}
+{% comment %} {%load media%} {% endcomment %}
+{% block title %}UoA DHPA Database Project{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="home-content-container">
+        <div class="search-content">
+            <div id="search-background-image"></div>
+            <form action="{%url 'homepage:home'%}" method=POST enctype="multipart/form-data" id="search-form-wrapper-container">
+                {% csrf_token %}
+                <div id="search-title-container">
+                    <label for="{{ form.title.id_for_label }}"><span>Title</span></label>
+                    <input type="text" placeholder="Input the title of your search"
+                           name="{{ form.title.name }}"
+                           id="{{ form.title.id_for_label}}"
+                           value="{% if prevSearchCondition.title %}{{ prevSearchCondition.title}}{% else %}{% if form.title.value %}{{ form.title.value|stringformat:'s' }}{% endif %}{% endif %}">
+                </div>
+                <div id="search-author-container">
+                    <label for="{{ form.author.id_for_label }}"><span>Photographer</span></label>
+                    <input type="text" placeholder="Input the name of the photographer"
+                           name="{{ form.author.name }}"
+                           id="{{ form.author.id_for_label }}"
+                           value="{% if prevSearchCondition.author %}{{ prevSearchCondition.author}}{% else %}{% if form.author.value %}{{ form.author.value|stringformat:'s' }}{% endif %}{% endif %}">
+                </div>
+                <div id="search-tag-container">
+                    <label for="{{ form.tag.id_for_label }}"><span>Tag</span></label>
+                    <input type="text" placeholder="Input the tag separated by commas"
+                           name="{{ form.tag.name }}"
+                           id="{{ form.tag.id_for_label}}"
+                           value="{% if prevSearchCondition.tag %}{{ prevSearchCondition.tag}}{% else %}{% if form.tag.value %}{{ form.tag.value|stringformat:'s' }}{% endif %}{% endif %}">
+                </div>
+                <div id="search-date-container">
+              <span><span id="mindatespan"><label for="{{ form.datefrom.id_for_label }}">From</label></span>
+              <input type="date" name="{{ form.datefrom.name }}" id="{{ form.datefrom.id_for_label }}"
+                     value="{% if prevSearchCondition.datefrom %}{{ prevSearchCondition.datefrom }}{% else %}{% if form.datefrom.value %}{{ form.datefrom.value|stringformat:'s' }}{% endif %}{% endif %}">
+              </span>
+
+                    <span><span id="maxdatespan"><label for="{{ form.dateto.id_for_label}}">to</label></span>
+              <input type="date" name="{{ form.dateto.name }}" id="{{ form.dateto.id_for_label }}"
+                     value="{% if prevSearchCondition.dateto %}{{ prevSearchCondition.dateto}}{% else %}{% if form.dateto.value %}{{ form.dateto.value|stringformat:'s' }}{% endif %}{% endif %}">
+              </span>
+
+                </div>
+                <div id="search-filetypes-container">
+                    <ul id="filetypes_selector">
+                        <li>
+                            <input type="checkbox" id="{{ form.files_Still_Images.id_for_label }}" name ="{{ form.files_Still_Images.name}}" {% if form.files_Still_Images.value != None%} value="{{ form.files_Still_Images.value|stringformat:'s'}}"{%endif%}/>
+                            <label for="{{ form.files_Still_Images.id_for_label}}">Still images</label>
+                        </li>
+                        <li>
+                            <input type="checkbox" id="{{ form.file_RTI.id_for_label }}" name ="{{ form.file_RTI.name}}" {% if form.file_RTI.value != None%} value="{{ form.file_RTI.value|stringformat:'s'}}"{%endif%}/>
+                            <label for="{{ form.file_RTI.id_for_label }}">Reflectance Transformation Imaging files</label>
+                        </li>
+                    </ul>
+                </div>
+                <div id="search-action-container" class="text-center">
+                    <input type="submit" name="search" value="Search" class="btn btn-white"/>
+                </div>
+            </form>
+        </div>
+        <div class="pic-display">
+            <div class="result-sort">
+                waiting for search result
+                <form method="post" style="display:inline">
+                    {%csrf_token%}
+                    <select name="sort-order" id="sort-order">
+                        <option value="relevancy">relevancy</option>
+                        <option value="date-old-to-new">Update date - oldest to newest</option>
+                        <option value="date-new-to-old">Update date - newest to oldest</option>
+                        <!-- Not implemented, sorting bug
+                        <option value="author-asc">Photographer - ascending</option>
+                        <option value="author-des">Photographer - descending</option>
+                        -->
+                        <option value="title-asc">Title - ascending</option>
+                        <option value="title-des">Title - descending</option>
+                        <option value="tags-asc">Tags - ascending</option>
+                        <option value="tags-des">Tags - descending</option>
+                    </select>
+                    <button type="submit" name="sort" class="btn btn-white" > Check selection</button>
+                </form>
+            </div>
+
+            <div class="images">
+                {%if results|length != 0%}
+                    <ul>
+                        {% for item in results %}
+                            <li class="single-item">
+                                <div class="order-num">{{ forloop.counter }}</div>
+                                <h1 class="title"><b>{{ item.Title }}</b></h1>
+                                <div class="image">
+                                    {% if item.images.all.0.Image and item.images.all.0.Image.url %}
+                                        <img src="{{ item.images.all.0.Image.url }}" alt="Miniature Image">
+                                    {% else %}
+                                        <p>No image available</p>
+                                    {% endif %}
+                                </div>
+                                <div class="details">
+                                    <div class="image-type">
+                                        STILL IMAGE <br>
+                                        <a class="btn btn-primary" href="{% url 'homepage:detail_page' item.id %}">Detail</a>
+                                    </div>
+                                    <div class="detail-info">
+                                        <div class="details-column">
+                                            <div class="details-title">Photographer</div>
+                                            <div class="author">
+                                                {% for author in item.Author.all %}
+                                                    {{ author }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="details-column">
+                                            <div class="details-title">Update date</div>
+                                            <div class="date">{{ item.Upload_Date }}</div>
+                                        </div>
+                                        <div class="details-column">
+                                            <div class="details-title">Tags</div>
+                                            <div class="tags">{{ item.Tags }}</div>
+                                        </div>
+                                        <div class="details-column">
+                                            <div class="details-title">Number of media</div>
+                                            <div class="media">{{ item.Media }}</div>
+                                        </div>
+                                        {% comment %} <div class="details-title">collection</div>
+                          <div class="collection">{{ item.}}</div> {% endcomment %}
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="emptyresult">
+                        <h1>No results found</h1>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="pagination">
+          <span class="step-links">
+            {% if results.has_previous %}
+                <span class="previous-pages"><a href="?page=1">First</a></span>
+                {% if results.previous_page_number > 1 %}
+                    <span class="previous-pages"><a href="?page={{ results.previous_page_number|add:-1}}">{{ results.previous_page_number|add:-1}}</a></span>
+                {% endif %}
+                <span class="previous-pages"><a href="?page={{ results.previous_page_number }}">{{ results.previous_page_number }}</a></span>
+            {% endif %}
+
+              <span class="current-page">
+              {{ results.number }}
+            </span>
+
+              {% if results.has_next%}
+                  <span class="next-pages"><a href="?page={{ results.next_page_number }}">{{ results.next_page_number }}</a></span>
+                  {% if results.next_page_number < num_of_pages %}
+                      <span class="next-pages"><a href="?page={{ results.next_page_number|add:1}}">{{ results.next_page_number|add:1}}</a></span>
+                  {% endif %}
+                  <span class="next-pages"><a href="?page={{ results.paginator.num_pages }}">Last</a></span>
+              {% endif %}
+          </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // waiting for upload
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            const messages = document.querySelectorAll('.messages li');
+
+            if (messages.length > 0) {
+                // set disappear time
+                setTimeout(() => {
+                    messages.forEach((message) => {
+                        message.style.transition = 'opacity 1s ease';
+                        message.style.opacity = '0';
+
+                        // remove time 1s, during 3s
+                        setTimeout(() => {
+                            message.remove();
+                        }, 1000);
+                    });
+                }, 2000);
+            }
+        });
+    </script>
+
+
+{% endblock content %}

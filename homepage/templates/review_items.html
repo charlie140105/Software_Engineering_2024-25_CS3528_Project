@@ -1,0 +1,637 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Review Items and Users
+{% endblock %}
+
+{% block content %}
+
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <!-- Nav tabs -->
+    <div class="tab-nav">
+        <h1 class=text-center>Review Items and Users</h1>
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#items" role="tab">Review Items</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#users" role="tab">Review Users</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#user_list" role="tab">User List</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#manage_items" role="tab">Manage Items</a>
+            </li>
+            
+            
+        </ul>
+    </div>
+    <div class="home-content-container">
+    <!-- Tab panes -->
+    <div class="tab-content">
+
+        <div class="modal fade" id="returnToUserModal" data-keyboard="false" tabindex="-1"
+             aria-labelledby="returnToUserModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="returnToUserModalLabel">Return Window</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+{#                        <form id="returnForm" method="post" enctype="multipart/form-data">#}
+                        <form id="returnForm" method="post" enctype="multipart/form-data">    
+                            {% csrf_token %}
+                            <!-- Hidden item ID field -->
+                            <input type="hidden" id="itemId" name="itemid" value="">
+                            <div class="form-group row">
+                                <label for="fileInput" class="col-sm-3 col-form-label nowrap-text">Upload File: </label>
+                                &nbsp;
+                                <div class="col-sm-9">
+                                    <label>
+                                        <input type="file" id="approval_file" name="approval_file" accept=".doc,.docx,.pdf,.txt">
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="submitReturnForm()">Return</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane active" id="items" role="tabpanel">
+            <h2 class="text-center">Pending Items Approvals</h2>
+            <div class="images">
+                {% if pending_items|length != 0 %}
+                    <ul>
+                        {% for item in pending_items %}
+                            <li class="single-item">
+                                <div class="order-num">{{ forloop.counter }}</div>
+                                <h1 class="title"><b>{{ item.Title }}</b></h1>
+                                <div class="review-image">
+                                    {% if item.images.all.0.Image and item.images.all.0.Image.url %}
+                                        <img src="{{ item.images.all.0.Image.url }}" alt="Miniature Image">
+                                    {% else %}
+                                        <p>No image available</p>
+                                    {% endif %}
+                                </div>
+                                <div class="details">
+                                    <div class="review-image-type">
+                                        STILL IMAGE <br>
+                                        <a class="btn btn-primary" href="{% url 'homepage:detail_page' item.id %}">Detail</a>
+                                    </div>
+                                    <div class="review-detail-info">
+                                        <div class="detail-column">
+                                            <div class="details-title">Photographer</div>
+                                            <div class="author">
+                                                {% for author in item.Author.all %}
+                                                    {{ author }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <div class="detail-column">
+                                            <div class="details-title">Update date</div>
+                                            <div class="date">{{ item.Upload_Date }}</div>
+                                        </div>
+                                        <div class="detail-column">
+                                            <div class="button-container">
+                                                <form action="{% url 'homepage:approve_item' item.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button class="btn btn-success btn-block custom-btn" type="submit">Approve</button>
+                                                </form>
+                                                <form action="{% url 'homepage:reject_item' item.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button class="btn btn-danger btn-block custom-btn" type="submit">Reject</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        <div class="detail-column">
+                                            <div class="details-title">Tags</div>
+                                            <div class="tags">{{ item.Tags }}</div>
+                                        </div>
+                                        <div class="detail-column">
+                                            <div class="details-title">Number of media</div>
+                                            <div class="media">{{ item.Media }}</div>
+                                        </div>
+                                    </div>
+                                    {% comment %} <div class="details-title">collection</div>
+                          <div class="collection">{{ item.}}</div> {% endcomment %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="emptyresult">
+                        <h1>No results found</h1>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Pagination for items -->
+            <div class="pagination justify-content-center">
+                {% if pending_items.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if pending_items.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_items=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_items={{ pending_items.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in pending_items.paginator.page_range %}
+                                <li class="page-item {% if pending_items.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page_items={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {% if pending_items.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_items={{ pending_items.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_items={{ pending_items.paginator.num_pages }}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="tab-pane" id="users" role="tabpanel">
+            <h2 class="text-center">Pending Users Approvals</h2>
+            <div class="images">
+                {% if pending_users|length != 0 %}
+                    <ul>
+                        {% for user in pending_users %}
+                            <li class="single-item">
+                                <div class="order-num">{{ forloop.counter }}</div>
+                                <div class="user-detail-info">
+                                    <div class="user-detail-column">
+                                        <div class="details-title">Username</div>
+                                        <div class="date">{{ user.username }}</div>
+                                    </div>
+                                    <div class="user-detail-column">
+                                        <div class="details-title">First name</div>
+                                        <div class="date">{{ user.first_name }}</div>
+                                    </div>
+                                    <div class="user-detail-column">
+                                        <div class="details-title">Last name</div>
+                                        <div class="date">{{ user.last_name  }}</div>
+                                    </div>
+                                    <div class="user-detail-column">
+                                        <div class="user-button-container">
+                                            <form action="{% url 'homepage:approve_user' user.id %}?tab=users" method="post" >
+                                                {% csrf_token %}
+                                                <button class="btn btn-success btn-block custom-btn" type="submit" >Approve</button>
+                                            </form>
+                                            <form action="{% url 'homepage:reject_user' user.id %}" method="post" >
+                                                {% csrf_token %}
+                                                <button class="btn btn-danger btn-block custom-btn" type="submit">Reject</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="user-detail-column">
+                                        <div class="details-title">Is-uploader</div>
+                                        <div class="date">{{ user.is_staff  }}</div>
+                                    </div>
+                                    <div class="user-detail-column">
+                                        <div class="details-title">Is-admin</div>
+                                        <div class="date">{{ user.is_superuser  }}</div>
+                                    </div>
+                                    <div class="user-detail-column">
+                                        <div class="details-title">Email</div>
+                                        <div class="date">{{ user.email  }}</div>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="emptyresult">
+                        <h1>No results found</h1>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Pagination for users -->
+            <div class="pagination justify-content-center">
+                {% if pending_users.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            {% if pending_users.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_users=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_users={{ pending_users.previous_page_number }}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in pending_users.paginator.page_range %}
+                                <li class="page-item {% if pending_users.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page_users={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+
+                            {% if pending_users.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_users={{ pending_users.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page_users={{ pending_users.paginator.num_pages }}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </div>
+        </div>
+        <div class="tab-pane" id="manage_items" role="tabpanel">
+            <h2 class="manage-items-title">Manage Uploaded Items</h2>
+            <div class="manage-items-container">
+                {% if active_items %}
+                    <ul>
+                        {% for item in active_items %}
+                            <li class="single-item">
+                                <h3 class="title">{{ item.Title }}</h3>
+                                <p class="item-info"><strong>Uploader:</strong> {{ item.Uploader.username }}</p>
+                                <p class="item-info"><strong>Uploaded on:</strong> {{ item.Upload_Date }}</p>
+                                <form action="{% url 'homepage:admin_delete_item' item.id %}" method="post" 
+                                      onsubmit="return confirm('Are you sure you want to delete this item?');">
+                                    {% csrf_token %}
+                                    <button class="btn btn-danger delete-btn" type="submit">Delete</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="emptyresult">
+                        <h1>No items found</h1>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+
+
+        <div class="tab-pane" id="user_list" role="tabpanel">
+            <h2 class="text-center">User List</h2>
+            <div class="content">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Upload</th>
+                        <th>Admin</th>
+                        <th>Email</th>
+                        <th>Last Login</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in active_users %}
+                        <tr>
+                            <td class="username-cell {% if user.is_superuser %}superuser-checked{% endif %}">
+                                {{ user.username }}
+                            </td>
+                            <td>
+                                <input type="checkbox" class="user-checkbox" data-user-id="{{ user.id }}" data-permission="is_staff" {% if user.is_staff %}checked{% endif %}>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="user-checkbox" data-user-id="{{ user.id }}" data-permission="is_superuser" {% if user.is_superuser %}checked{% endif %}>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.last_login }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+
+
+
+        <style>
+            .tab-nav{
+                display: flex;
+                justify-content: center;
+                flex-direction: column;
+                margin: 0 auto;
+                width: 1450px;
+            }
+
+            .tab-content{
+                width: 100%;
+            }
+
+            .review-image{
+                position: relative;
+                margin: 0 50px 0 50px;
+                max-height: 200px;
+                max-width: 200px;
+                display: inline-block;
+            }
+
+            .review-image img {
+                max-height: 100%;
+                max-width: 100%;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                overflow: hidden;
+            }
+
+            .review-image-type {
+                font-weight: bolder;
+                position: relative;
+                top: 50px; 
+                left:30px;
+            }
+
+            .review-detail-info{
+                position: relative;
+                bottom:70px;
+                left:200px;
+                border-left:  3px solid rgb(175, 175, 175);
+                padding-left: 20px;
+                font-size: large;
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .detail-column {
+                width: 33.33%;
+                box-sizing: border-box;
+            }
+
+            .button-container{
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                width: 200px;
+                margin-top: 30px;
+                position: relative;
+                top: 20px;
+            }
+
+            .user-detail-column {
+                width: 25%;
+                box-sizing: border-box;
+            }
+
+            .user-detail-info{
+                position: relative;
+                bottom: 20px;
+                left: 140px;
+                padding-left: 20px;
+                font-size: large;
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            .user-button-container{
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                width: 200px;
+                margin-top: 30px;
+                position: relative;
+                top: 20px;
+                right: 30px;
+            }
+
+
+            form {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+
+            .nowrap-text {
+                white-space: nowrap;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+
+            th, td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            th {
+                background-color: #f2f2f2;
+            }
+
+
+
+            /* Default username color */
+
+            /* Change color when 'is_superuser' checkbox is checked */
+            .username-cell.superuser-checked {
+                color: #02ba02; /* Change to green when checked */
+            }
+            .messages {
+                padding: 10px 0;
+                position: fixed;
+                top: 0;
+                width: 100%;
+                z-index: 1000;
+            }
+
+            .messages li {
+                margin: 0 15px;
+                padding: 10px;
+                border-radius: 3px;
+                color: #fff;
+                display: block;
+                text-align: center;
+            }
+
+            /* Additional styling */
+            .messages li a {
+                color: #fff;
+                text-decoration: underline;
+                font-weight: bold;
+            }
+
+            .pagination{
+                margin-bottom:10px;
+            }
+
+            .pagination-list li {
+                margin: 0 5px;
+            }
+            .pagination-list li.active span {
+                font-weight: bold;
+            }
+
+            /* Responsive message boxes */
+            @media (max-width: 600px) {
+                .messages li {
+                    margin: 0 10px;
+                    padding: 8px;
+                }
+            }
+            .manage-items-title {
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                padding: 10px;
+                margin-bottom: 20px;
+            }
+            
+            /* Fix overlapping issue by adding spacing */
+            .manage-items-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; /* Add space between items */
+            }
+
+            /* Fix each item box */ 
+            .single-item {
+                background: #ffffff;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 20px; /* Add space below each item */
+                max-width: 500px;
+                text-align: center;
+                box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+                width: 100%; /* Ensure width consistency */
+            }
+
+            /* Improve title spacing */
+            .single-item h3.title {
+                font-size: 20px;
+                font-weight: bold;
+                color: #333;
+                margin-bottom: 10px;
+            }
+
+            /* Add spacing to uploader and date */
+            .single-item .item-info {
+                font-size: 16px;
+                color: #555;
+                margin-bottom: 5px;
+            }
+
+            /* Fix delete button to prevent overlap */
+            .single-item .delete-btn {
+                width: 180px;
+                padding: 10px;
+                font-size: 16px;
+                margin-top: 10px;
+                border-radius: 5px;
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+        </style>
+
+        <!-- Add Bootstrap JS and dependencies if not already included -->
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const tab = urlParams.get('tab');
+
+                let activeTab = '#items';
+                if (tab === 'users') {
+                    activeTab = '#users';
+                }
+
+                $('.nav-tabs a[href="' + activeTab + '"]').tab('show');
+            });
+            
+            
+            // 
+            $('#returnToUserModal').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget); // Button that triggered the modal
+                const itemId = button.data('itemid'); // Extract info from data-* attributes
+                
+                console.log(itemId); 
+                
+                const modal = $(this);
+                modal.find('.modal-body #itemId').val(itemId); // Set the item ID in the hidden input field
+                // Update the form action URL dynamically
+                const actionUrl = "{% url 'homepage:return_item' '0' %}".replace('0', itemId);
+                modal.find('#returnForm').attr('action', actionUrl);
+            }).on('hidden.bs.modal', function () {
+                let modal = $(this);
+                modal.find('.modal-body #itemId').val(''); // Clear the item ID
+                modal.find('.modal-body #fileInput').val(''); // Clear the file input
+            });
+
+            function submitReturnForm() {
+                const form = document.getElementById('returnForm');
+                form.submit();
+            }
+
+            $(document).ready(function() {
+                $('.user-checkbox').change(function() {
+                    var userId = $(this).data('user-id');
+                    var permission = $(this).data('permission');
+                    var hasPermission = $(this).is(':checked');
+
+                    $.ajax({
+                        url: "{% url 'homepage:update_user_permission' %}",
+                        method: "POST",
+                        data: {
+                            'user_id': userId,
+                            'permission': permission,
+                            'has_permission': hasPermission,
+                            'csrfmiddlewaretoken': '{{ csrf_token }}'
+                        },
+                        success: function(response) {
+                            alert('Permission updated successfully');
+                        },
+                        error: function(xhr, status, error) {
+                            alert('Error updating permission');
+                        }
+                    });
+                });
+            });
+            document.addEventListener("DOMContentLoaded", function () {
+                const urlParams = new URLSearchParams(window.location.search);
+                const tab = urlParams.get('tab');
+        
+                let activeTab = '#items';  // Default to 'Review Items'
+                if (tab === 'users') {
+                    activeTab = '#users';
+                } else if (tab === 'manage_items') {
+                    activeTab = '#manage_items';  // Ensure Manage Items is selectable
+                }
+        
+                $('.nav-tabs a[href="' + activeTab + '"]').tab('show');
+            });
+        </script>
+
+        
+    </div>
+    </div>
+{% endblock %}
+</div>

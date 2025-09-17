@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %} Admin Image Management {% endblock %}
+
+{% block content %}
+<h2 class="text-center">Manage Uploaded Images</h2>
+
+<div class="image-list">
+    {% for image in images %}
+        <div class="image-container">
+            <img src="{{ image.Image.url }}" alt="Uploaded Image" class="admin-thumbnail">
+            <p>Item: {{ image.Item.Title }}</p>
+            <button class="btn btn-danger btn-sm delete-image-btn" data-image-id="{{ image.id }}">Delete</button>
+        </div>
+    {% empty %}
+        <p>No images uploaded yet.</p>
+    {% endfor %}
+</div>
+
+<!-- JavaScript for Deletion -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll('.delete-image-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const imageId = this.getAttribute('data-image-id');
+
+                fetch(`/admin/delete-image/${imageId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        this.parentElement.remove();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        });
+    });
+</script>
+
+<style>
+    .image-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+    .image-container {
+        position: relative;
+        width: 200px;
+        text-align: center;
+    }
+    .admin-thumbnail {
+        width: 100%;
+        height: auto;
+        border: 1px solid #ddd;
+        padding: 5px;
+    }
+    .delete-image-btn {
+        margin-top: 10px;
+    }
+</style>
+
+{% endblock %}

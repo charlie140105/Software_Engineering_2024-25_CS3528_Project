@@ -1,0 +1,3 @@
+# Ignore the "media" directory
+media/
+.env

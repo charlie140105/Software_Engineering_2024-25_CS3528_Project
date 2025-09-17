@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+
+{%load static%}
+
+{% load crispy_forms_tags %}
+
+{% block headtitle %}UoA DHPA Upload Form{% endblock %}
+
+{% block content %}
+
+    <head>
+        <link rel="stylesheet" href="
+    {%static 'css/upload_form.css'%}">
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    </head>
+
+    <body>
+    <div class="-container_special">
+        {% if request.user.is_staff or request.user.is_superuser %}
+            <div class="upload-form">
+                <div class="form-container">
+                    <form action="{% url 'homepage:upload_item' %}" class="test-form" id="upload_image_form" method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        <!-- Title -->
+                        <div class="form-row">
+                            <div class="form-group col-md-10">
+                                {{ item_form.Title|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Author -->
+                        <div class="form-row" id="author-fields">
+                            <div class="form-group col-md-9">
+                                {{ item_form.Author|as_crispy_field }}
+                            </div>
+                            <div class="form-group col-md-1">
+                                <button type="button" class="btn btn-primary btn-custom" id="add-author-btn">Add+</button>
+                            </div>
+                        </div>
+
+                        <!-- Additional Authors (added dynamically using JavaScript) -->
+                        <div class="form-row" id="additional-authors">
+                            <!-- Additional authors will be added dynamically -->
+                        </div>
+
+                        <!-- Upload Date -->
+                        <div class="form-row">
+                            <div class="form-group col-md-10 ">
+                                {{ item_form.Upload_Date|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Upload Images -->
+                        <div class="form-row">
+                            <div class="form-group col-md-10 ">
+                                <!-- Display field-specific errors -->
+                                {% if item_form.Upload_Images.errors %}
+                                    <div class="alert alert-danger">
+                                        {{ item_form.Upload_Images.errors }}
+                                    </div>
+                                {% endif %}
+                        
+                                <!-- Display the file input field -->
+                                {{ item_form.Upload_Images|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Is RTI File -->
+                        <div class="form-row">
+                            <div class="form-group col-md-10 ">
+                                {{ item_form.IsRti|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-row">
+                            <div class="form-group col-md-10">
+                                {{ item_form.Description|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-2 ">
+                                <button type="button" class="btn btn-primary" data-toggle="collapse" data-target="#tagsCollapse" aria-expanded="false" aria-controls="tagsCollapse">Add Metadata</button>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Fields (collapsed initially) -->
+                        <div class="collapse" id="tagsCollapse">
+                            <!-- Alternate Title and Language -->
+                            <div class="form-row">
+                                <div class="form-group col-md-5 ">
+                                    {{ item_form.Alternate_Title|as_crispy_field }}
+                                </div>
+                                <div class="form-group col-md-5 ">
+                                    {{ item_form.Language|as_crispy_field }}
+                                </div>
+                            </div>
+
+                            <!-- Provenance, Collection Location, Dimensions, Accession Number, Tags, Bibliography -->
+                            <div class="form-row">
+                                <div class="form-group col-md-10 ">
+                                    {{ item_form.Provenance|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-10 ">
+                                    {{ item_form.Current_Collection_Location|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-10 ">
+                                    {{ item_form.Dimensions|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-10 ">
+                                    {{ item_form.Accession_Number|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-10 ">
+                                    {{ item_form.Tags|as_crispy_field }}
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group col-md-10">
+                                    <div id="editor-container">
+                                        <!-- use Quill -->
+                                        <div id="editor" class="ql-editor"></div>
+                                        <input type="hidden" name="Bibliography" id="Bibliography">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
+                    
+
+                        <!-- Submit Button -->
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <button type="submit" class="btn btn-primary col-md-10">Submit</button>
+                            </div>
+                        </div>
+                    
+                    </form>
+
+                </div>
+            </div>
+        {% else %}
+            <p>You do not have permission to upload files.</p>
+        {% endif %}
+    </div>
+    
+
+    <!-- QuillJS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['link', 'image'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['clean']
+                ],
+            },
+            bounds: '#editor-container',
+            height: '300px', // set editor default height
+        });
+
+        quill.on('editor-change', function(eventName, ...args) {
+            if (eventName === 'text-change') {
+                document.getElementById('Bibliography').value = quill.root.innerHTML;
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            var authorCount = 1; // Initialize author count
+
+            $('#add-author-btn').click(function () {
+                authorCount++; // Increment author count
+
+                var newAuthorField = $('<div class="form-group col-md-10 author-field">' +
+                    '<label for="Author">' +
+                    'Photographer ' + authorCount + '' +
+                    '</label><div class="input-group">' +
+                    '<input type="text" name="Author" class="form-control" placeholder="Name of photographer">' +
+                    '<div class="input-group-append">' +
+                    '<button type="button" class="btn btn-danger delete-author-btn btn-custom-del">Delete' +
+                    '</button>' +
+                    '</div></div></div>');
+
+                $('#additional-authors').append(newAuthorField);
+
+                // Attach click event for delete button
+                newAuthorField.find('.delete-author-btn').click(function () {
+                    $(this).closest('.author-field').remove();
+                    // Re-index the remaining items
+                    $('.author-field').each(function(index) {
+                        $(this).find('label').text('Photographer ' + (index + 2));
+                    });
+                    authorCount = $('.author-field').length + 1; // Update author count
+                });
+            });
+        });
+    </script>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <script>
+        fileCount = null
+        fileNames = []
+        document.getElementById('upload_images').addEventListener('change', function(e) {
+            fileCount = e.target.files.length;
+            files = e.target.files;
+            for ( var i = 0;i < files.length; i++)
+            {
+                fileNames.push(files[i].name);
+            }
+            fileNames.reverse();
+            addImageInfoForm(fileCount);
+        })
+
+
+        let checkbox = document.getElementById('IsRti');
+        let rtiFileElement = ""; // variable to hold the RTI file upload element
+
+        function addImageInfoForm(fileCount){
+            var formContainer = document.getElementById('upload_image_form');
+            var nodeToInsertBefore = document.getElementById('upload_images');
+
+            var newForm = document.createElement('form');
+            newForm.innerHTML = `{{image_forms.as_p}}`; // this is backtick! not quotation mark!
+
+            // create new HTML input field for collecting information of an image
+            function createImageInfoFieldNode(){
+                // create <p> element
+                var pElement = document.createElement("p");
+                pElement.classList.add("image-info-field");
+
+                // create <label> element for detail
+                var labelElementDetail = document.createElement("label");
+                labelElementDetail.setAttribute("for", "id_View_Detail");
+                labelElementDetail.textContent = "Detail:";
+                pElement.appendChild(labelElementDetail);
+
+
+                // create <input> element for detail
+                var inputElement = document.createElement("input");
+                inputElement.setAttribute("type", "text");
+                inputElement.setAttribute("name", "View_Detail");
+                inputElement.setAttribute("required", "");
+                inputElement.setAttribute("id", "id_View_Detail");
+                pElement.appendChild(inputElement);
+
+                var infoElement = document.createElement("label");
+                infoElement.setAttribute("id","item_info");
+                infoElement.textContent = "placeholder";
+
+                pElement.appendChild(infoElement);
+                return pElement;
+            }
+
+            prevNodes = formContainer.querySelectorAll("#image_info");
+            for(var i = 0; i < prevNodes.length; i++){
+                nodeToInsertBefore.parentNode.removeChild(prevNodes[i]);
+            }
+            for(var i = 0; i < fileCount; i++){
+                newNode = createImageInfoFieldNode();
+                newNode.id = 'image_info';
+                var infoElement = newNode.querySelector('#item_info');
+                if(infoElement)
+                {
+                    infoElement.textContent = fileNames[i];
+                }
+                nodeToInsertBefore.parentNode.insertBefore(newNode, nodeToInsertBefore.nextSibling);
+            }
+        }
+
+
+        function createRtiUpload(fatherNode){
+            // create div
+
+            var rtiFileUploadDiv = document.createElement('div');
+            rtiFileUploadDiv.setAttribute('id', 'rti_file_upload');
+
+            // create label
+            var labelElement = document.createElement('label');
+            labelElement.setAttribute('for', 'rti_file');
+            labelElement.textContent = 'RTI Files:';
+            /*
+            Will be modified later to process ptm hsh and rti files
+            */
+            // create input
+            var inputElement = document.createElement('input');
+            inputElement.setAttribute('type', 'file');
+            inputElement.setAttribute('accept', '.rti, .ptm, .hsh');
+            {#inputElement.setAttribute('accept','.ptm,.hsh.')#}
+            inputElement.setAttribute('id', 'rti_file');
+            inputElement.setAttribute('name', 'rti_file');
+
+            rtiFileUploadDiv.appendChild(labelElement);
+            rtiFileUploadDiv.appendChild(inputElement);
+
+            // add rtiFileUploadDiv to the place DOM point
+            fatherNode.parentNode.insertBefore(rtiFileUploadDiv, fatherNode.nextSibling);
+            return rtiFileUploadDiv;
+        }
+
+        rtiFileElement = ""
+        checkbox.addEventListener('change', function(e){
+            if (checkbox.checked){
+                rtiFileElement = createRtiUpload(checkbox)
+            }
+            else{
+                if (rtiFileElement){
+                    checkbox.parentNode.removeChild(rtiFileElement)}
+                
+            }
+        })
+    </script>
+
+
+
+{% endblock content %}

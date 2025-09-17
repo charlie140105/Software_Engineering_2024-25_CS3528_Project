@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+    UoA DHPA Database Project
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'css/home_index.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="content_special" class="home-content-container">
+    <h1>User Profile</h1>
+    <p class="profile-info">Welcome, {{ user.username }}!</p>
+    <p class="profile-info">Email: {{ user.email }}</p>
+    <a href="{% url 'homepage:home' %}" class="btn btn-primary mt-3 mb-4">Return to Home</a>
+</div>
+{% endblock %}
+

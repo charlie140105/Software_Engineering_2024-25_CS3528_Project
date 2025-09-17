@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+    UoA DHPA Database Project
+{% endblock %}
+
+{% block content %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Display</title>
+    <link rel="stylesheet" href="{% static './css/delete_page.css' %}" />
+
+    <div class="home-content-container">
+        <h1>Are you sure you want to delete this item?</h1>
+        <div>
+            <a href="#" onclick="history.back(); return false;" class="btn btn-primary">Cancel</a>
+        </div>
+        <div class="delete-button-container">
+            <form action="{% url 'homepage:item_delete' pk=item.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Login
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <div class="container_special mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h2 class="mb-4 text-center">Login</h2>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label for="{{ form.username.id_for_label }}" class="col-md-10 col-form-label">Username*</label>
+                        <div class="col-lg-12">
+                            {{ form.username }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="{{ form.password.id_for_label }}" class="col-md-10 col-form-label">Password*</label>
+                        <div class="col-lg-12">
+                            {{ form.password }}
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-md-8 offset-md-2 text-center">
+                            <button type="submit" class="btn btn-primary" style="padding: 15px 150px; font-size: 18px;width:auto;">Login</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+
+        .container {
+            width: auto;
+        }
+
+
+        .messages {
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .messages li {
+            margin: 0 15px;
+            padding: 10px;
+            border-radius: 3px;
+            color: #fff;
+            display: block;
+            text-align: center;
+        }
+
+        /* Additional styling */
+        .messages li a {
+            color: #fff;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        /* Responsive message boxes */
+        @media (max-width: 600px) {
+            .messages li {
+                margin: 0 10px;
+                padding: 8px;
+            }
+        }
+    </style>
+
+    <script>
+        // waiting for upload
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            const messages = document.querySelectorAll('.messages li');
+
+            if (messages.length > 0) {
+                // set disappear time
+                setTimeout(() => {
+                    messages.forEach((message) => {
+                        message.style.transition = 'opacity 1s ease';
+                        message.style.opacity = '0';
+
+                        // remove time 1s, during 3s
+                        setTimeout(() => {
+                            message.remove();
+                        }, 1000);
+                    });
+                }, 2000);
+            }
+        });
+    </script>
+{% endblock %}

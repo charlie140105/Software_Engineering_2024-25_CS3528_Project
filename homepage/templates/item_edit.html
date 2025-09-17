@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
+
+{%load static%}
+
+{% load crispy_forms_tags %}
+
+{% block headtitle %}UoA DHPA Edit Form{% endblock %}
+
+{% block content %}
+
+    <head>
+        <title>Edit Item</title>
+        <link rel="stylesheet" href="{% static 'css/upload_form.css' %}">
+        <link rel="stylesheet" href="{% static 'css/edit_form.css' %}">
+        <!-- Include jQuery -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    </head>
+
+    <body>
+    <div class="content">
+        <div class="upload-form">
+            <div class="form-container">
+                <form action="{% url 'homepage:item_edit' pk=item.pk %}" class="test-form" id="upload_image_form" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ form.non_field_errors }}
+                    {{ form.errors }}
+
+                    <div class="form-group">
+                        {{ form.Title|as_crispy_field }}
+                    </div>
+
+                    <div id="author-fields">
+                        {% for author in authors %}
+                            <div class="form-group author-field row">
+                                <div class="col-md-11">
+                                    <label for="id_author_{{ forloop.counter0 }}">Photographer {{ forloop.counter }}</label>
+                                    <input type="text" name="Author" value="{{ author }}" class="form-control author-line" id="id_author_{{ forloop.counter0 }}" >
+                                </div>
+                                {% if forloop.counter == 1 %}
+                                    <div class="col-md-1 text-right">
+                                        <button type="button" class="btn btn-primary btn-custom  btn-left" id="add-author-btn">Add+</button>
+                                    </div>
+                                {% else %}
+                                    <div class="col-md-1 text-right">
+                                        <button type="button" class="btn btn-danger delete-author-btn btn-custom btn-right">Delete</button>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+
+                    <div class="form-group">
+                        {{ form.Upload_Date|as_crispy_field }}
+                    </div>
+
+                    <p>Remove Images</p>
+                    <div class="image-container">
+                        {% for image in images %}
+                            <div class="image-box" data-image-id="{{ image.id }}">
+                                <div class="image-wrapper">
+                                    <input type="checkbox" name="selected_images" value="{{ image.id }}" class="hidden-checkbox">
+                                    <img src="{{ image.Image.url }}" alt="Thumbnail" onclick="toggleCheckbox({{ image.id }})">
+                                </div>
+                                <div class="detail">
+                                    <p>{{ image.View_Detail }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="button-container">
+                        <button type="button" id="delete-selected-images" class="btn btn-danger">Delete Selected Images</button>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Upload_Images|as_crispy_field }}
+                    </div>
+
+
+                    <div class="form-group">
+                        {{ form.IsRti|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Description|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Alternate_Title|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Language|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Provenance|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Current_Collection_Location|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Dimensions|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Accession_Number|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.Tags|as_crispy_field }}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editor">Bibliography</label>
+                        <div id="editor"></div>
+                        <input type="hidden" name="Bibliography" id="Bibliography">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary col-md-12">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to toggle checkbox and add/remove selected class
+        function toggleCheckbox(imageId) {
+            // select checkbox by id
+            const checkbox = document.querySelector(`input[type="checkbox"][value="${imageId}"]`);
+            // change checkbox status
+            checkbox.checked = !checkbox.checked;
+
+            const imageBox = checkbox.closest('.image-box');
+            if (checkbox.checked) {
+                imageBox.classList.add('selected');
+            } else {
+                imageBox.classList.remove('selected');
+            }
+        }
+
+        // listen event
+        document.querySelectorAll('.hidden-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('click', function(event) {
+                // avoid overlap click
+                event.stopPropagation();
+
+                const imageBox = checkbox.closest('.image-box');
+                if (checkbox.checked) {
+                    imageBox.classList.add('selected');
+                } else {
+                    imageBox.classList.remove('selected');
+                }
+            });
+        });
+
+        // Function to handle deletion of selected images
+        document.getElementById('delete-selected-images').addEventListener('click', function() {
+            const selectedImages = document.querySelectorAll('.image-box.selected');
+            const deleteImageIds = [];
+            selectedImages.forEach(function(imageBox) {
+                const imageId = imageBox.dataset.imageId;
+                deleteImageIds.push(imageId);
+                imageBox.remove(); // Remove the image box from DOM
+            });
+
+            // Create hidden input fields dynamically to submit deleted image ids
+            deleteImageIds.forEach(function(imageId) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'delete_images';
+                input.value = imageId;
+                document.getElementById('upload_image_form').appendChild(input);
+            });
+        });
+    </script>
+
+    <!-- Quill editor -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['link', 'image'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['clean']
+                ],
+            },
+        });
+
+        var storedValue = "{{ form.Bibliography.value|escapejs }}";
+        if (storedValue) {
+            quill.root.innerHTML = storedValue;
+        }
+
+        quill.on('editor-change', function(eventName, ...args) {
+            if (eventName === 'text-change') {
+                document.getElementById('Bibliography').value = quill.root.innerHTML;
+            }
+        });
+    </script>
+
+
+
+
+    <!-- Custom Scripts -->
+    <script>
+        $(document).ready(function() {
+            // Add Author button click event
+            $('#add-author-btn').click(function () {
+                var newAuthorField = $('<div class="form-group author-field row">' +
+                    '<div class="col-md-11">' +
+                    '<label for="id_author">Photographer</label>' +
+                    '<input type="text" name="Author" class="form-control">' +
+                    '</div>' +
+                    '<div class="col-md-1 text-right">' +
+                    '<button type="button" class="btn btn-danger delete-author-btn btn-custom btn-right">Remove</button>' +
+                    '</div>' +
+                    '</div>');
+
+                $('#author-fields').append(newAuthorField);
+                updateAuthorLabels();
+            });
+
+            // Delete Author button click event
+            $(document).on('click', '.delete-author-btn', function () {
+                $(this).closest('.author-field').remove();
+                updateAuthorLabels();
+            });
+
+            // Function to update author labels after deletion
+            function updateAuthorLabels() {
+                $('.author-field').each(function (index) {
+                    var authorLabel = $(this).find('label');
+                    authorLabel.text('Photographer ' + (index + 1));
+                    var inputField = $(this).find('input');
+                    inputField.attr('id', 'id_author_' + index);
+                });
+            }
+        });
+    </script>
+    </body>
+
+    <script>
+        fileCount = null
+        fileNames = []
+        document.getElementById('upload_images').addEventListener('change', function(e) {
+            fileCount = e.target.files.length;
+            files = e.target.files;
+            for ( var i = 0;i < files.length; i++)
+            {
+                fileNames.push(files[i].name);
+            }
+            fileNames.reverse();
+            addImageInfoForm(fileCount);
+        })
+
+
+        let checkbox = document.getElementById('IsRti');
+
+        function addImageInfoForm(fileCount){
+            var formContainer = document.getElementById('upload_image_form');
+            var nodeToInsertBefore = document.getElementById('upload_images');
+
+            var newForm = document.createElement('form');
+            newForm.innerHTML = `{{image_forms.as_p}}`; // this is backtick! not quotation mark!
+
+            // create new HTML input field for collecting information of an image
+            function createImageInfoFieldNode(){
+                // create <p> element
+                var pElement = document.createElement("p");
+                pElement.classList.add("image-info-field");
+
+                // create <label> element for detail
+                var labelElementDetail = document.createElement("label");
+                labelElementDetail.setAttribute("for", "id_View_Detail");
+                labelElementDetail.textContent = "Detail:";
+                pElement.appendChild(labelElementDetail);
+
+
+                // create <input> element for detail
+                var inputElement = document.createElement("input");
+                inputElement.setAttribute("type", "text");
+                inputElement.setAttribute("name", "View_Detail");
+                inputElement.setAttribute("required", "");
+                inputElement.setAttribute("id", "id_View_Detail");
+                pElement.appendChild(inputElement);
+
+                var infoElement = document.createElement("label");
+                infoElement.setAttribute("id","item_info");
+                infoElement.textContent = "placeholder";
+
+                pElement.appendChild(infoElement);
+                return pElement;
+            }
+
+            prevNodes = formContainer.querySelectorAll("#image_info");
+            for(var i = 0; i < prevNodes.length; i++){
+                nodeToInsertBefore.parentNode.removeChild(prevNodes[i]);
+            }
+            for(var i = 0; i < fileCount; i++){
+                newNode = createImageInfoFieldNode();
+                newNode.id = 'image_info';
+                var infoElement = newNode.querySelector('#item_info');
+                if(infoElement)
+                {
+                    infoElement.textContent = fileNames[i];
+                }
+                nodeToInsertBefore.parentNode.insertBefore(newNode, nodeToInsertBefore.nextSibling);
+            }
+        }
+
+
+        function createRtiUpload(fatherNode){
+            // create div
+
+            var rtiFileUploadDiv = document.createElement('div');
+            rtiFileUploadDiv.setAttribute('id', 'rti_file_upload');
+
+            // create label
+            var labelElement = document.createElement('label');
+            labelElement.setAttribute('for', 'rti_file');
+            labelElement.textContent = 'RTI Files:';
+            /*
+            Will be modified later to process ptm hsh and rti files
+            */
+            // create input
+            var inputElement = document.createElement('input');
+            inputElement.setAttribute('type', 'file');
+            inputElement.setAttribute('accept', '.zip, .rar, .7z, .ptm, .hsh');
+            {#inputElement.setAttribute('accept','.ptm,.hsh.')#}
+            inputElement.setAttribute('id', 'rti_file');
+            inputElement.setAttribute('name', 'rti_file');
+
+            rtiFileUploadDiv.appendChild(labelElement);
+            rtiFileUploadDiv.appendChild(inputElement);
+
+            // add rtiFileUploadDiv to the place DOM point
+            fatherNode.parentNode.insertBefore(rtiFileUploadDiv, fatherNode.nextSibling);
+            return rtiFileUploadDiv;
+        }
+
+        rtiFileElement = ""
+        checkbox.addEventListener('change', function(e){
+            if (checkbox.checked){
+                rtiFileElement = createRtiUpload(checkbox)
+            }
+            else{
+                checkbox.parentNode.removeChild(rtiFileElement)
+            }
+        })
+    </script>
+
+
+
+{% endblock content %}

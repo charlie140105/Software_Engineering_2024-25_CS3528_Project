@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<link type="text/css" href="{% static 'webRTIViewer/webViewer/css/ui-lightness/jquery-ui-1.10.3.custom.css' %}" rel="stylesheet">
+<link type="text/css" href="{% static 'webRTIViewer/webViewer/css/webrtiviewer.css' %}" rel="stylesheet">
+
+<script type="text/javascript" src="{% static 'webRTIViewer/webViewer/js/jquery-1.11.3.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'webRTIViewer/webViewer/js/jquery-ui.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'webRTIViewer/webViewer/js/pep.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'webRTIViewer/webViewer/spidergl/spidergl.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'webRTIViewer/webViewer/spidergl/multires.min.js' %}"></script>
+
+<title> {{ name }}</title>
+
+<div id="home-content-container"></div>
+<script type="text/javascript"> document.title = "{{ name }} "</script>
+    <div id="viewerCont" class="viewerCont">
+                <!-- Spinner Placeholder -->
+                <div id="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading RTI Viewer...</p>
+                </div>
+
+        <script type="text/javascript">
+           	createRtiViewer("viewerCont", "{{ info_url }}" + "{{ name }}" + "/", 900, 600);
+
+            // Check if all images are downloaded
+            window.onload = function() {
+                const spinner = document.getElementById("loading-spinner");
+                if (multiResRTI && multiResRTI.areAllImagesDownloaded()) {
+                    console.log("All images are downloaded!");
+                    spinner.style.display = "none"; // Hide the spinner
+                } else {
+                    console.log("Images are still downloading...");
+                    // Optionally, you can set up a periodic check
+                    const checkInterval = setInterval(() => {
+                        if (multiResRTI.renderer._currentOngoingRequests < 0) {
+                            multiResRTI.renderer._currentOngoingRequests = 0;
+                        }
+                        console.log("Images are still downloading...");
+                        console.log({
+                            toRequest: multiResRTI.renderer._toRequest,
+                            currentOngoingRequests: multiResRTI.renderer._currentOngoingRequests,
+                            readyItems: multiResRTI.renderer._readyItems
+                        });
+                        if (multiResRTI.areAllImagesDownloaded()) {
+                            console.log("All images are now downloaded!");
+                            spinner.style.display = "none"; // Hide the spinner
+                            clearInterval(checkInterval); // Stop checking
+                        }
+                    }, 1000); // Check every 0.1 seconds
+                }
+            };
+
+        </script>
+    </div>
+</div>
+
+{% endblock %}

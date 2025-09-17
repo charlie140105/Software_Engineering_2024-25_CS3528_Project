@@ -1,0 +1,84 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block title %}
+    UoA DHPA Database Project
+{% endblock %}
+
+{% block content %}
+    <head>
+        <link rel="stylesheet" href="{% static 'css/help_page.css' %}">
+        <title>Website Help</title>
+    </head>
+    <body>
+    <header>
+        <div class="container">
+            <h1>How to Use Our Website</h1>
+            <nav>
+                <a href="#display">Display Items</a>
+                <a href="#search">Search Items</a>
+                <a href="#pagination">Pagination & Sorting</a>
+                <a href="#details">View Details</a>
+                <a href="#rti">RTI Viewer</a>
+                <a href="#uploading">Upload Items</a>
+                <a href="#usage">Usage & Sharing</a>
+            </nav>
+        </div>
+    </header>
+    <div class="content-container">
+        <section id="display">
+            <article>
+                <h2>Displaying Collections</h2>
+                <p>Our database hosts visual data related to items research has been made on. You can browse these items from our main page which displays them in a user-friendly gallery format.</p>
+            </article>
+        </section>
+        <section id="search">
+            <article>
+                <h2>Searching for Items</h2>
+                <p>You can search for specific items using the search form at the top of the homepage. You can look for an item using its title, the name of its author or the tags of the item.</p>
+            </article>
+        </section>
+        <section id="pagination">
+            <article>
+                <h2>Pagination and Sorting</h2>
+                <p>To aid in navigation, our website implements pagination and sorting features. You can navigate through pages using the pagination controls at the bottom of the page, and you can sort items by various criteria using the sorting options provided (chronological and alphabetical).</p>
+            </article>
+        </section>
+        <section id="details">
+            <article>
+                <h2>Viewing Item Details</h2>
+                <p>Click on any item in our collection to view more detailed information about it. The detail page will provide comprehensive information about the item. It also contains an image carousel at the top, allowing you to view the different still images associated with the item. Simply click one of the image thumbnails at the bottom to view the image in full size. Each image can have a short description that will be displayed alongside it.</p>
+            </article>
+        </section>
+        <section id="rti">
+            <article>
+                <h2>Using the RTI Viewer</h2>
+                <p>Our site features an RTI Viewer which allows you to interact with RTI files for an in-depth examination of certain collectibles. This tool helps you to explore every aspect of the item in high detail. You can access it by clicking the link at the top left of the image carousel.</p>
+            </article>
+        </section>
+        <section id="uploading">
+            <article>
+                <h2>Uploading new data</h2>
+                <p>You can upload new items and related files to the database. In order to do so, just access the "upload form" page and enter the needed metadata alongside the files you upload. You can upload RTI data in the form of a RTI file(.ptm, .hsh). The RTI visualisation tool used is Openlime, which accepts .tzi, .dzi, and still image files as RTI planes.</p>
+            </article>
+        </section>
+        <section id="usage">
+            <article>
+                <h2>How to Use and Share the System</h2>
+                <p>
+                    All images in this system are licensed under the CC-BY-NC-SA 4.0 International License. According to this license, you are free to use, copy, modify, and distribute these images under the following conditions:
+                </p>
+                <p><strong>Attribution:</strong> You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.</p>
+                <p><strong>Non-Commercial:</strong> You may not use the material for commercial purposes.</p>
+                <p><strong>ShareAlike:</strong>  If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.</p>
+                <p>
+                    Additionally, please include the collection name and other stipulated information in the metadata for the specific objects to ensure compliance with the license.
+                </p>
+                <p>
+                    For more details, please visit the license page: <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">http://creativecommons.org/licenses/by-nc-sa/4.0/</a>.
+                </p>
+            </article>
+        </section>
+    </div>
+    </body>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+
+    <div class="home-content-container">
+        <h1>Registration Pending Review</h1>
+        <p>Your account has been successfully created, but before you can log in, we need to complete some verifications. This is usually done within 24 hours.</p>
+        <p>Once the review is complete, you will receive an email notification. Please be patient and check your email.</p>
+        <p>Thank you for your understanding and patience.</p>
+    </div>
+
+    <style>
+
+        .messages {
+            padding: 10px 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .messages li {
+            margin: 0 15px;
+            padding: 10px;
+            border-radius: 3px;
+            color: #fff;
+            display: block;
+            text-align: center;
+        }
+
+        /* Additional styling */
+        .messages li a {
+            color: #fff;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        /* Responsive message boxes */
+        @media (max-width: 600px) {
+            .messages li {
+                margin: 0 10px;
+                padding: 8px;
+            }
+        }
+    </style>
+
+    <script>
+        // waiting for upload
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            const messages = document.querySelectorAll('.messages li');
+
+            if (messages.length > 0) {
+                // set disappear time
+                setTimeout(() => {
+                    messages.forEach((message) => {
+                        message.style.transition = 'opacity 1s ease';
+                        message.style.opacity = '0';
+
+                        // remove time 1s, during 3s
+                        setTimeout(() => {
+                            message.remove();
+                        }, 1000);
+                    });
+                }, 2000);
+            }
+        });
+    </script>
+{% endblock %}

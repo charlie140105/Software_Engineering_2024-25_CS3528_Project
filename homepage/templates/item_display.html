@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}
+    UoA DHPA Database Project
+{% endblock %}
+
+{% block content %}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Display</title>
+    <link rel="stylesheet" href="{% static '/css/detail_page.css' %}" />
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="max-width">
+        <section id="main-item">
+            <div class="result-title">
+                <h1>{{ item.Title }}</h1>
+            </div>
+            <div id="main-image-container">
+                <div class="related-slider">
+                    <div class="view-port">
+                        {% if images.0.Image and images.0.Image.url %}
+                            <img id="main-image" class="main-image" src="{{ images.0.Image.url }}" alt="Main Image" />
+                        {% else %}
+                            <p>No image available</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="thumbnail-container">
+                    {% for image in images|dictsort:'Index' %}
+                        <div class="thumbnail-div-container">
+                            <img class="thumbnail" src="{{ image.Image.url }}" alt="Thumbnail" onclick="changeMainImage('{{ image.Image.url }}')" />
+                            <div class="thumbnail-div"> {{image.View_Detail}} </div>
+                        </div>
+                    {% endfor %}
+                    <button class="arrow-button arrow-prev-next-button previous" type="button" onclick="showPreviousImage()">
+                        <svg class="arrow-button-icon" viewBox="0 0 100 100">
+                            <path d="M 10,50 L 60,100 L 70,90 L 30,50  L 70,10 L 60,0 Z"></path>
+                        </svg>
+                    </button>
+                    <button class="arrow-button arrow-prev-next-button next" tpye="button" onclick="showNextImage()">
+                        <svg class="arrow-button-icon" viewBox="0 0 100 100">
+                            <path d="M 10,50 L 60,100 L 70,90 L 30,50  L 70,10 L 60,0 Z"  transform="translate(100, 100) rotate(180) "></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="rti-viewer">
+                <nav class="anchor-nav">
+                    <a href="{% url 'homepage:rti' item.id %}" class="btn-primary rti-button">View RTI</a>
+                </nav>
+            </div>
+        </section>
+        <section id="catalog-card-dtls">
+            <div class="main-coloum">
+                <div class="type">{{image.Filetype}} </div>
+                <h1 style="text-align: center;"><strong>{{item.Title}}</strong></h1>
+                {% comment %} <dl class="grouped">
+            <div>
+              <dt>123</dt>
+              <dd>345</dd>
+            </div>
+          </dl>
+          <dl class="grouped">
+            <div>
+              <dt>345</dt>
+              <dd>567</dd>
+            </div>
+          </dl>
+          <h1>Details</h1> {% endcomment %}
+                <div class="accordion">
+                    <div class="accordion-block show-all">
+                        <div>
+                            <div class="">
+                                {% comment %} <h2 class="acc-title"><button class="accordion-trigger" id="acc-pub-lbl"><span class="accordion-title">Artifacts Details</span></button></h2> {% endcomment %}
+                                <div id="acc-pub" class="accordion-panel" style="height: auto;">
+                                    <div>
+                                        <dl class="grouped">
+                                            <div>
+                                                <dt>Date</dt> <dd>{{ item.Upload_Date }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt>Number of Images</dt><dd>{{ images|length }}</dd>
+                                            </div>
+                                            <div>
+                                                <dt>Author</dt>
+                                                {% for author in item.Author.all %}
+                                                    {{ author }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <div>
+                                                <dt>Tags</dt>
+                                                {% if tag_list %}
+                                                    {% for tag in tag_list %}
+                                                        {% if tag.strip %}
+                                                            {{ tag.strip }}<br>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                <dt>Description</dt> <dd>{{ item.Description }}</dd>
+                                            </div>
+                                            <div class="collapse-toggle">
+                                                <a href="#" class="collapse-btn" onclick="toggleCollapse(event)">Show+</a>
+                                            </div>
+                                            <div id="collapse-section" style="display: none;">
+                                                <dl class="grouped">
+                                                    <div>
+                                                        <dt>Alternate Title</dt> <dd>{{ item.Alternate_Title }}</dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt>Language</dt> <dd>{{ language_name }}</dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt>Provenance</dt> <dd>{{ item.Provenance }}</dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt>Current/Collection Location</dt> <dd>{{ item.Current_Collection_Location }}</dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt>Dimensions</dt> <dd>{{ item.Dimensions }}</dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt>Accession Number</dt> <dd>{{ item.Accession_Number }}</dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt>Bibliography</dt>
+                                                        <dd>{{ item.Bibliography | safe }}<dd>
+                                                    </div>
+                                                </dl>
+                                            </div>
+                                        </dl>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="right-coloum">
+                <div class="accordion-copyright" >
+                    <div class="accordion-item">
+                        <div class="accordion-header" id="headingOne">
+                            <h2 class="mb-0">
+                                <button class="accordion-button" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Copyright Statement
+                                </button>
+                            </h2>
+                        </div>
+
+                        <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                            <div class="accordion-body">
+                                <!--<strong>Nathaniel Greene, Catherine Bonesho</strong> In copyright<br>
+                                This work is licensed under a Creative Commons Attribution-NonCommercial 4.0 International License. You are free to copy, redistribute, remix, transform and build upon the material under the condition that you give appropriate credit, provide a link to the license, and indicate if changes were made. You may not use the material for commercial purposes.<br>
+                                <a href="http://creativecommons.org/licenses/by-nc/4.0/">http://creativecommons.org/licenses/by-nc/4.0/</a>-->
+                                <strong>Nathaniel Greene</strong> In copyright<br>
+                                This work is licensed under a Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License. You are free to copy, redistribute, remix, transform and build upon the material under the condition that you give appropriate credit, provide a link to the license, and indicate if changes were made. You may not use the material for commercial purposes, and if you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.<br>
+                                <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">http://creativecommons.org/licenses/by-nc-sa/4.0/</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% if user.is_superuser and item.approve_status == 0 %}
+        <div class="action-container">
+            <div class="button-container">
+                <form action="{% url 'homepage:approve_item' item.id %}" method="post">
+                    {% csrf_token %}
+                    <button class="btn btn-success btn-block custom-btn" type="submit">Approve</button>
+                </form>
+                <form action="{% url 'homepage:reject_item' item.id %}" method="post">
+                    {% csrf_token %}
+                    <button class="btn btn-danger btn-block custom-btn" type="submit">Reject</button>
+                </form>
+                <button type="button" class="btn btn-primary btn-block custom-btn" data-toggle="modal" data-target="#returnToUserModal" data-itemid="{{ item.id }}">
+                    Return to User
+                </button>
+            </div>
+        </div>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- This script for add multiple photographer -->
+    <script>
+        $(document).ready(function () {
+            $('#add-author-btn').click(function () {
+                var newAuthorField = $('<div class="form-group col-md-5 mb-20"><label for="Author">Photographer(s)</label><input type="text" name="Author" class="form-control" placeholder="Name of photographer"></div>');
+                $('#additional-authors').append(newAuthorField);
+            });
+        });
+    </script>
+
+    <script>
+        function toggleCollapse(event) {
+            event.preventDefault();
+            var section = document.getElementById('collapse-section');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                event.target.textContent = 'Hide-';
+            } else {
+                section.style.display = 'none';
+                event.target.textContent = 'Show+';
+            }
+        }
+    </script>
+
+    <script>
+        let thumbnails = document.querySelectorAll('.thumbnail-div-container'); // Update selector to get all thumbnail containers
+        let mainImage = document.getElementById('main-image')
+        let currentIndex = 0
+
+        function changeMainImage(imageUrl) {
+            mainImage.src = imageUrl
+        }
+        function showPreviousImage() {
+            currentIndex = (currentIndex - 1 + thumbnails.length) % thumbnails.length;
+            changeMainImage(thumbnails[currentIndex].querySelector('.thumbnail').src);
+        }
+
+        function showNextImage() {
+            currentIndex = (currentIndex + 1) % thumbnails.length;
+            changeMainImage(thumbnails[currentIndex].querySelector('.thumbnail').src);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            var accordion = document.querySelectorAll('.accordion-button');
+
+            for (var i = 0; i < accordion.length; i++) {
+                accordion[i].addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    var panel = this.nextElementSibling;
+                    if (panel.style.display === "block") {
+                        panel.style.display = "none";
+                    } else {
+                        panel.style.display = "block";
+                    }
+                });
+            }
+        });
+        
+           // waiting for upload
+        document.addEventListener('DOMContentLoaded', (event) => {
+
+            const messages = document.querySelectorAll('.messages li');
+
+            if (messages.length > 0) {
+                // set disappear time
+                setTimeout(() => {
+                    messages.forEach((message) => {
+                        message.style.transition = 'opacity 1s ease';
+                        message.style.opacity = '0';
+
+                        // remove time 1s, during 3s
+                        setTimeout(() => {
+                            message.remove();
+                        }, 1000);
+                    });
+                }, 2000);
+            }
+        });
+    </script>
+{% endblock %}
